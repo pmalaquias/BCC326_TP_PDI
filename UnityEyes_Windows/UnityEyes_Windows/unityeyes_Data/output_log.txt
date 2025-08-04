@@ -1,0 +1,34 @@
+Initialize engine version: 5.2.0f3 (e7947df39b5c)
+GfxDevice: creating device client; threaded=1
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.0]
+    Renderer: NVIDIA GeForce RTX 3050 Laptop GPU (ID=0x25e2)
+    Vendor:   NVIDIA
+    VRAM:     3072 MB
+Begin MonoManager ReloadAssembly
+Platform assembly: D:\Repository\faculdade\tp_pdi\UnityEyes_Windows\UnityEyes_Windows\unityeyes_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading D:\Repository\faculdade\tp_pdi\UnityEyes_Windows\UnityEyes_Windows\unityeyes_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: D:\Repository\faculdade\tp_pdi\UnityEyes_Windows\UnityEyes_Windows\unityeyes_Data\Managed\Assembly-CSharp-firstpass.dll (this message is harmless)
+Loading D:\Repository\faculdade\tp_pdi\UnityEyes_Windows\UnityEyes_Windows\unityeyes_Data\Managed\Assembly-CSharp-firstpass.dll into Unity Child Domain
+Platform assembly: D:\Repository\faculdade\tp_pdi\UnityEyes_Windows\UnityEyes_Windows\unityeyes_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading D:\Repository\faculdade\tp_pdi\UnityEyes_Windows\UnityEyes_Windows\unityeyes_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+Platform assembly: D:\Repository\faculdade\tp_pdi\UnityEyes_Windows\UnityEyes_Windows\unityeyes_Data\Managed\UnityEngine.UI.dll (this message is harmless)
+Loading D:\Repository\faculdade\tp_pdi\UnityEyes_Windows\UnityEyes_Windows\unityeyes_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
+Platform assembly: D:\Repository\faculdade\tp_pdi\UnityEyes_Windows\UnityEyes_Windows\unityeyes_Data\Managed\UnityEngine.Networking.dll (this message is harmless)
+Loading D:\Repository\faculdade\tp_pdi\UnityEyes_Windows\UnityEyes_Windows\unityeyes_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
+Platform assembly: D:\Repository\faculdade\tp_pdi\UnityEyes_Windows\UnityEyes_Windows\unityeyes_Data\Managed\System.Core.dll (this message is harmless)
+- Completed reload, in  2.537 seconds
+desktop: 1920x1080 120Hz; virtual: 4800x1350 at 0,0
+<RI> Initializing input.
+<RI> Input initialized.
+<RI> Initialized touch support.
+Platform assembly: D:\Repository\faculdade\tp_pdi\UnityEyes_Windows\UnityEyes_Windows\unityeyes_Data\Managed\System.dll (this message is harmless)
+48
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebugBindings.gen.cpp Line: 64)
+
+Setting up 4 worker threads for Enlighten.
+  Thread -> id: 88b0 -> priority: 1 
+  Thread -> id: 1ec4 -> priority: 1 
+  Thread -> id: 70e4 -> priority: 1 
+  Thread -> id: 4b20 -> priority: 1 
