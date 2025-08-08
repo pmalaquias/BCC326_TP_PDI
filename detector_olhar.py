@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import math
 
 import cv2
@@ -12,7 +13,7 @@ eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
 # 2. Nosso modelo de Deep Learning treinado para estimar o olhar
 gaze_model = load_model('gaze_model.keras')
 
-# Inicia a captura de vídeo da webcam
+# Inicia a captura de video da webcam
 cap = cv2.VideoCapture(0)
 
 while True:
@@ -41,20 +42,20 @@ while True:
             # ROI do olho
             eye_roi = roi_gray[ey:ey+eh, ex:ex+ew]
             
-            # --- LÓGICA DE PREVISÃO COM O MODELO TREINADO ---
+            # --- LOGICA DE PREVISAO COM O MODELO TREINADO ---
             # 1. Redimensiona a imagem do olho para o tamanho que o modelo espera (60x36)
             eye_roi_resized = cv2.resize(eye_roi, (60, 36))
             
-            # 2. Pré-processa a imagem EXATAMENTE como fizemos no treinamento
+            # 2. Pre-processa a imagem EXATAMENTE como fizemos no treinamento
             input_image = eye_roi_resized.astype(np.float32) / 255.0
-            input_image = np.expand_dims(input_image, axis=-1) # Adiciona dimensão de canal
-            input_image = np.expand_dims(input_image, axis=0)  # Adiciona dimensão de batch
+            input_image = np.expand_dims(input_image, axis=-1) # Adiciona dimensao de canal
+            input_image = np.expand_dims(input_image, axis=0)  # Adiciona dimensao de batch
 
-            # 3. Faz a previsão!
-            gaze_pred = gaze_model.predict(input_image)[0] # Pega o primeiro (e único) resultado
+            # 3. Faz a previsao!
+            gaze_pred = gaze_model.predict(input_image)[0] # Pega o primeiro (e unico) resultado
             pitch, yaw = gaze_pred
             
-            # --- Desenha a Seta de Direção ---
+            # --- Desenha a Seta de Direcao ---
             # Desenha a seta a partir do centro do olho
             start_point_on_eye = (x + ex + ew // 2, y + ey + eh // 2)
             arrow_length = 50

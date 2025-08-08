@@ -9,31 +9,30 @@ Dataset: UnityEyes - Dados processados de gaze_labels.csv
 # BLOCO 1: IMPORTAÇÃO DE BIBLIOTECAS
 # =============================================================================
 
-import warnings
-
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 import seaborn as sns
-import tensorflow as tf
-from sklearn.metrics import (accuracy_score, classification_report,
-                             confusion_matrix)
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, StandardScaler
-from tensorflow.keras.callbacks import (EarlyStopping, ModelCheckpoint,
-                                        ReduceLROnPlateau)
-from tensorflow.keras.layers import LSTM, BatchNormalization, Dense, Dropout
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+import tensorflow as tf
 from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense, Dropout, BatchNormalization
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 from tensorflow.keras.utils import to_categorical
-
+import warnings
 warnings.filterwarnings('ignore')
 
 # Configurações para melhor visualização
 try:
     plt.style.use('seaborn-v0_8')
 except:
-    plt.style.use('seaborn')
+    try:
+        plt.style.use('seaborn')
+    except:
+        pass
 sns.set_palette("husl")
 
 # =============================================================================
@@ -86,7 +85,8 @@ def explorar_dados(df):
     fig, axes = plt.subplots(2, 2, figsize=(15, 10))
     
     # Distribuição da atenção
-    axes[0, 0].pie(df['attention'].value_counts(), labels=['Sem Atenção', 'Com Atenção'], 
+    attention_counts = df['attention'].value_counts()
+    axes[0, 0].pie(attention_counts.values, labels=['Sem Atenção', 'Com Atenção'], 
                    autopct='%1.1f%%', startangle=90)
     axes[0, 0].set_title('Distribuição da Variável Target (Attention)')
     
@@ -378,9 +378,6 @@ def main():
     
     return model, history, accuracy
 
-if __name__ == "__main__":
-    # Executa o pipeline completo
-    model, history, accuracy = main() 
 if __name__ == "__main__":
     # Executa o pipeline completo
     model, history, accuracy = main() 

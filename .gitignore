@@ -1,3 +1,4 @@
 *.zip
 /venv
 *.assets
+__pycache__/
