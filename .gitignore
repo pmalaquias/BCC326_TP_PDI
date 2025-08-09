@@ -1,3 +1,4 @@
 *.zip
 /venv
 *.assets
+/UnityEyes_Windows/UnityEyes_Windows/imgs
