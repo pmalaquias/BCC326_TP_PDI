@@ -17,7 +17,7 @@ Loading D:\Repository\faculdade\tp_pdi\UnityEyes_Windows\UnityEyes_Windows\unity
 Platform assembly: D:\Repository\faculdade\tp_pdi\UnityEyes_Windows\UnityEyes_Windows\unityeyes_Data\Managed\UnityEngine.Networking.dll (this message is harmless)
 Loading D:\Repository\faculdade\tp_pdi\UnityEyes_Windows\UnityEyes_Windows\unityeyes_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
 Platform assembly: D:\Repository\faculdade\tp_pdi\UnityEyes_Windows\UnityEyes_Windows\unityeyes_Data\Managed\System.Core.dll (this message is harmless)
-- Completed reload, in  2.537 seconds
+- Completed reload, in  1.347 seconds
 desktop: 1920x1080 120Hz; virtual: 4800x1350 at 0,0
 <RI> Initializing input.
 <RI> Input initialized.
@@ -28,7 +28,7 @@ Platform assembly: D:\Repository\faculdade\tp_pdi\UnityEyes_Windows\UnityEyes_Wi
 (Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebugBindings.gen.cpp Line: 64)
 
 Setting up 4 worker threads for Enlighten.
-  Thread -> id: 88b0 -> priority: 1 
-  Thread -> id: 1ec4 -> priority: 1 
-  Thread -> id: 70e4 -> priority: 1 
-  Thread -> id: 4b20 -> priority: 1 
+  Thread -> id: 8e38 -> priority: 1 
+  Thread -> id: 95a8 -> priority: 1 
+  Thread -> id: 8860 -> priority: 1 
+  Thread -> id: 9fe4 -> priority: 1 
