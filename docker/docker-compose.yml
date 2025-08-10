@@ -1,0 +1,22 @@
+services:
+  tp_pdi:
+    # A chave 'build' contém tanto o 'context' quanto o 'dockerfile'
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile
+    ports:
+      - "8888:8888"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    volumes:
+      - ..:/app
+      # Mapeia a pasta do seu dataset aninhada para /app/UnityEyes_Windows
+      - ../UnityEyes_Windows/UnityEyes_Windows:/app/UnityEyes_Windows
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all

@@ -1,0 +1,15 @@
+# Ignora pastas
+venv/
+.git/
+UnityEyes_Windows/subdiv_data/
+UnityEyes_Windows/unityeyes_Data/
+UnityEyes_Windows/
+
+# Ignora tipos de arquivos
+*.zip
+*.exe
+*.h5
+*.keras
+
+# Ignora arquivos e pastas específicas
+tree.txt
