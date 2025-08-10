@@ -61,24 +61,28 @@ def processar_dados_unityeyes():
                     # Atribua o rótulo binário
                     attention_label = 1 if distance_to_center < attention_threshold else 0
 
-                    # 6. Armazene os dados em um dicionário
+                    # 6. Crie o nome do arquivo de imagem (removendo .json e adicionando .jpg)
+                    image_filename = filename.replace('.json', '') + '.jpg'
+                    
+                    # 7. Armazene os dados em um dicionário
                     all_data.append({
                         'filename': filename,
                         'look_vec_x': look_vec_x,
                         'look_vec_y': look_vec_y,
                         'look_vec_z': look_vec_z,
                         'pupil_size': pupil_size,
-                        'attention': attention_label
+                        'attention': attention_label,
+                        'image_filename': image_filename
                     })
 
                 except (IOError, json.JSONDecodeError, KeyError) as e:
                     print(f"Erro ao processar o arquivo {filename}: {e}")
                     continue # Pula para o próximo arquivo em caso de erro
 
-        # 7. Converta a lista de dicionários para um DataFrame do pandas
+        # 8. Converta a lista de dicionários para um DataFrame do pandas
         gaze_df = pd.DataFrame(all_data)
 
-        # 8. Salve o DataFrame em um arquivo CSV na pasta output
+        # 9. Salve o DataFrame em um arquivo CSV na pasta output
         output_path = os.path.join('..', 'output', 'gaze_labels.csv')
         gaze_df.to_csv(output_path, index=False)
         print(f"\nArquivo '{output_path}' criado com sucesso! Contém {len(gaze_df)} registros.")
