@@ -2,3 +2,5 @@
 /venv
 *.assets
 /UnityEyes_Windows/UnityEyes_Windows/imgs
+/mpiigaze_real
+/.ipynb_checkpoints
