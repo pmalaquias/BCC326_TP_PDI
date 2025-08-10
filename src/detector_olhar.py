@@ -6,11 +6,11 @@ from tensorflow.keras.models import load_model
 
 # --- CARREGAR OS MODELOS ---
 # 1. Classificadores Haar para encontrar o rosto e os olhos
-face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
+face_cascade = cv2.CascadeClassifier('../classifier/haarcascade_frontalface_default.xml')
+eye_cascade = cv2.CascadeClassifier('../classifier/haarcascade_eye.xml')
 
 # 2. Nosso modelo de Deep Learning treinado para estimar o olhar
-gaze_model = load_model('gaze_model.keras')
+gaze_model = load_model('../models/gaze_model.keras')
 
 # Inicia a captura de vídeo da webcam
 cap = cv2.VideoCapture(0)

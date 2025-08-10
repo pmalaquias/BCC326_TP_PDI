@@ -47,7 +47,7 @@ def carregar_dados():
     print("Carregando dados...")
     
     # Carrega o arquivo CSV
-    df = pd.read_csv('gaze_labels.csv')
+    df = pd.read_csv('../output/gaze_labels.csv')
     
     # Remove espaços em branco dos nomes das colunas
     df.columns = df.columns.str.strip()
