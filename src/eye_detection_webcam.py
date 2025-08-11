@@ -20,6 +20,19 @@ class EyeDetector:
         try:
             self.gaze_model = keras.models.load_model('models/gaze_attention_model.keras')
             print("Modelo de atenção do olhar carregado com sucesso!")
+            
+            # Mostra o summary do modelo para verificar a arquitetura
+            print("\n=== SUMMARY DO MODELO ===")
+            self.gaze_model.summary()
+            print("\n=== INFORMAÇÕES DO MODELO ===")
+            print(f"Input shape: {self.gaze_model.input_shape}")
+            print(f"Output shape: {self.gaze_model.output_shape}")
+            print(f"Número de parâmetros: {self.gaze_model.count_params():,}")
+            
+            # Inicializa buffer para frames sequenciais
+            self.frame_buffer = []
+            self.buffer_size = 10  # O modelo espera 10 frames
+            
         except Exception as e:
             print(f"Erro ao carregar modelo de atenção: {e}")
             self.gaze_model = None
@@ -123,11 +136,12 @@ class EyeDetector:
         try:
             x, y, w, h = eye_region
             
-            # Extrai a região dos olhos do frame
+            # Extrai a região dos olhos do frame atual
             eye_img = frame[y:y+h, x:x+w]
             
-            # Redimensiona para o tamanho esperado pelo modelo (assumindo 64x64)
-            eye_img_resized = cv2.resize(eye_img, (64, 64))
+            # Redimensiona para o tamanho esperado pelo modelo (62x62)
+            target_size = 62  # O modelo LSTM espera 62x62
+            eye_img_resized = cv2.resize(eye_img, (target_size, target_size))
             
             # Converte para escala de cinza se necessário
             if len(eye_img_resized.shape) == 3:
@@ -138,14 +152,41 @@ class EyeDetector:
             # Normaliza os valores para [0, 1]
             eye_img_normalized = eye_img_gray.astype(np.float32) / 255.0
             
-            # Adiciona dimensões de batch e canal se necessário
-            if len(eye_img_normalized.shape) == 2:
-                eye_img_input = eye_img_normalized.reshape(1, 64, 64, 1)
-            else:
-                eye_img_input = eye_img_normalized.reshape(1, 64, 64, 1)
+            # Adiciona o frame atual ao buffer
+            self.frame_buffer.append(eye_img_normalized)
+            
+            # Mantém apenas os últimos 10 frames
+            if len(self.frame_buffer) > self.buffer_size:
+                self.frame_buffer.pop(0)
+            
+            # Só faz predição quando temos frames suficientes
+            if len(self.frame_buffer) < self.buffer_size:
+                return "Coletando frames...", 0.0
+            
+            # Cria a sequência de frames para o modelo LSTM
+            frames_sequence = np.stack(self.frame_buffer, axis=0)
+            
+            # Adiciona dimensões de batch e canal: (1, 10, 62, 62, 1)
+            eye_img_input = frames_sequence.reshape(1, self.buffer_size, target_size, target_size, 1)
+            
+            # Debug: mostra informações sobre os dados de entrada
+            print(f"\n=== DEBUG PREDIÇÃO LSTM ===")
+            print(f"Região dos olhos: {eye_region}")
+            print(f"Tamanho da imagem original: {eye_img.shape}")
+            print(f"Tamanho redimensionado: {eye_img_resized.shape}")
+            print(f"Tamanho após conversão para cinza: {eye_img_gray.shape}")
+            print(f"Tamanho normalizado: {eye_img_normalized.shape}")
+            print(f"Frames no buffer: {len(self.frame_buffer)}")
+            print(f"Tamanho final de entrada: {eye_img_input.shape}")
+            print(f"Range dos valores: [{eye_img_normalized.min():.3f}, {eye_img_normalized.max():.3f}]")
+            print(f"Tipo de dados: {eye_img_input.dtype}")
             
             # Faz a predição
             prediction = self.gaze_model.predict(eye_img_input, verbose=0)
+            
+            print(f"Predição bruta: {prediction}")
+            print(f"Shape da predição: {prediction.shape}")
+            print(f"Tipo da predição: {prediction.dtype}")
             
             # Interpreta a predição (assumindo que é binária: 0 = sem atenção, 1 = com atenção)
             if len(prediction.shape) > 1:
@@ -163,6 +204,15 @@ class EyeDetector:
             print(f"Erro na predição: {e}")
             return "Erro na predição", 0.0
     
+    def clear_frame_buffer(self):
+        """Limpa o buffer de frames"""
+        self.frame_buffer.clear()
+        print("Buffer de frames limpo!")
+    
+    def get_buffer_status(self):
+        """Retorna o status atual do buffer"""
+        return len(self.frame_buffer), self.buffer_size
+    
     def run_webcam(self):
         """Executa a detecção em tempo real usando webcam"""
         # Inicializa a webcam
@@ -177,6 +227,8 @@ class EyeDetector:
         print("Pressione 'j' para salvar olho esquerdo")
         print("Pressione 'k' para salvar região dos olhos")
         print("Pressione 'l' para salvar olho direito")
+        print("Pressione 'c' para limpar buffer de frames")
+        print("Pressione 'r' para reiniciar buffer de frames")
         
         while True:
             # Captura frame da webcam
@@ -191,6 +243,11 @@ class EyeDetector:
             
             # Adiciona informações na tela
             cv2.putText(frame, f"Olhos detectados: {len(eye_regions)}", (10, 30), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            
+            # Mostra status do buffer
+            buffer_current, buffer_total = self.get_buffer_status()
+            cv2.putText(frame, f"Buffer: {buffer_current}/{buffer_total}", (10, 60), 
                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
             
             # Mostra o frame
@@ -229,6 +286,13 @@ class EyeDetector:
                 filename = f"olho_direito_{len(os.listdir('imgs')) + 1}.png"
                 cv2.imwrite(f"imgs/{filename}", eye_img)
                 print(f"Olho direito salvo como: {filename}")
+            elif key == ord('c'):
+                # Limpa o buffer de frames
+                self.clear_frame_buffer()
+            elif key == ord('r'):
+                # Reinicia o buffer de frames
+                self.clear_frame_buffer()
+                print("Buffer reiniciado! Começando nova coleta de frames...")
             elif key in [ord('j'), ord('k'), ord('l')]:
                 # Mensagem quando as teclas são pressionadas mas não há olhos detectados
                 if key == ord('j'):
