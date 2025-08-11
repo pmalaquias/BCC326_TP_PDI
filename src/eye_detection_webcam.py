@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 import os
+import tensorflow as tf
+from tensorflow import keras
 
 class EyeDetector:
     def __init__(self):
@@ -13,6 +15,14 @@ class EyeDetector:
             print("Erro: Não foi possível carregar o classificador de faces")
         if self.eye_cascade.empty():
             print("Erro: Não foi possível carregar o classificador de olhos")
+        
+        # Carrega o modelo de atenção do olhar
+        try:
+            self.gaze_model = keras.models.load_model('models/gaze_attention_model.keras')
+            print("Modelo de atenção do olhar carregado com sucesso!")
+        except Exception as e:
+            print(f"Erro ao carregar modelo de atenção: {e}")
+            self.gaze_model = None
     
     def detect_eyes(self, frame):
         """Detecta faces e olhos no frame"""
@@ -81,8 +91,77 @@ class EyeDetector:
                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
                 
                 combined_eye_region = (min_x, min_y, max_x - min_x, max_y - min_y)
+                
+                # Faz predição de atenção usando a região combinada dos olhos
+                attention_result = self.predict_attention(combined_eye_region, frame)
+                
+                # Adiciona texto da predição de atenção na bounding box da face
+                if attention_result is not None and len(attention_result) == 2:
+                    attention_text, attention_score = attention_result
+                    if attention_text != "Modelo não disponível" and attention_text != "Erro na predição":
+                        # Posiciona o texto acima da face
+                        text_x = x
+                        text_y = max(0, y - 10)
+                        
+                        # Escolhe cor baseada no resultado
+                        if attention_text == "ATENÇÃO":
+                            color = (0, 255, 0)  # Verde para atenção
+                        else:
+                            color = (0, 0, 255)  # Vermelho para sem atenção
+                        
+                        # Adiciona texto da predição
+                        cv2.putText(frame, f"{attention_text}: {attention_score:.2f}", 
+                                   (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
         
         return eye_regions, combined_eye_region
+    
+    def predict_attention(self, eye_region, frame):
+        """Prediz se há atenção baseada na região dos olhos"""
+        if self.gaze_model is None or eye_region is None:
+            return "Modelo não disponível"
+        
+        try:
+            x, y, w, h = eye_region
+            
+            # Extrai a região dos olhos do frame
+            eye_img = frame[y:y+h, x:x+w]
+            
+            # Redimensiona para o tamanho esperado pelo modelo (assumindo 64x64)
+            eye_img_resized = cv2.resize(eye_img, (64, 64))
+            
+            # Converte para escala de cinza se necessário
+            if len(eye_img_resized.shape) == 3:
+                eye_img_gray = cv2.cvtColor(eye_img_resized, cv2.COLOR_BGR2GRAY)
+            else:
+                eye_img_gray = eye_img_resized
+            
+            # Normaliza os valores para [0, 1]
+            eye_img_normalized = eye_img_gray.astype(np.float32) / 255.0
+            
+            # Adiciona dimensões de batch e canal se necessário
+            if len(eye_img_normalized.shape) == 2:
+                eye_img_input = eye_img_normalized.reshape(1, 64, 64, 1)
+            else:
+                eye_img_input = eye_img_normalized.reshape(1, 64, 64, 1)
+            
+            # Faz a predição
+            prediction = self.gaze_model.predict(eye_img_input, verbose=0)
+            
+            # Interpreta a predição (assumindo que é binária: 0 = sem atenção, 1 = com atenção)
+            if len(prediction.shape) > 1:
+                prediction = prediction.flatten()
+            
+            attention_score = prediction[0]
+            
+            # Determina o resultado baseado no score
+            if attention_score > 0.5:
+                return "ATENÇÃO", attention_score
+            else:
+                return "SEM ATENÇÃO", attention_score
+                
+        except Exception as e:
+            print(f"Erro na predição: {e}")
+            return "Erro na predição", 0.0
     
     def run_webcam(self):
         """Executa a detecção em tempo real usando webcam"""
