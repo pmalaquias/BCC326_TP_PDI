@@ -174,6 +174,9 @@ class EyeDetector:
         
         print("Pressione 'q' para sair")
         print("Pressione 's' para salvar uma captura")
+        print("Pressione 'j' para salvar olho esquerdo")
+        print("Pressione 'k' para salvar região dos olhos")
+        print("Pressione 'l' para salvar olho direito")
         
         while True:
             # Captura frame da webcam
@@ -199,10 +202,41 @@ class EyeDetector:
             if key == ord('q'):
                 break
             elif key == ord('s'):
-                # Salva a captura
+                # Salva a captura completa
                 filename = f"captura_olhos_{len(os.listdir('imgs')) + 1}.png"
                 cv2.imwrite(f"imgs/{filename}", frame)
-                print(f"Captura salva como: {filename}")
+                print(f"Captura completa salva como: {filename}")
+            elif key == ord('j') and len(eye_regions) >= 2:
+                # Salva o olho esquerdo (assumindo que é o primeiro detectado ou mais à esquerda)
+                left_eye = min(eye_regions, key=lambda x: x[0])  # Olho com menor coordenada x
+                x, y, w, h = left_eye
+                eye_img = frame[y:y+h, x:x+w]
+                filename = f"olho_esquerdo_{len(os.listdir('imgs')) + 1}.png"
+                cv2.imwrite(f"imgs/{filename}", eye_img)
+                print(f"Olho esquerdo salvo como: {filename}")
+            elif key == ord('k') and combined_region is not None:
+                # Salva a região combinada dos olhos
+                x, y, w, h = combined_region
+                region_img = frame[y:y+h, x:x+w]
+                filename = f"regiao_olhos_{len(os.listdir('imgs')) + 1}.png"
+                cv2.imwrite(f"imgs/{filename}", region_img)
+                print(f"Região dos olhos salva como: {filename}")
+            elif key == ord('l') and len(eye_regions) >= 2:
+                # Salva o olho direito (assumindo que é o segundo detectado ou mais à direita)
+                right_eye = max(eye_regions, key=lambda x: x[0])  # Olho com maior coordenada x
+                x, y, w, h = right_eye
+                eye_img = frame[y:y+h, x:x+w]
+                filename = f"olho_direito_{len(os.listdir('imgs')) + 1}.png"
+                cv2.imwrite(f"imgs/{filename}", eye_img)
+                print(f"Olho direito salvo como: {filename}")
+            elif key in [ord('j'), ord('k'), ord('l')]:
+                # Mensagem quando as teclas são pressionadas mas não há olhos detectados
+                if key == ord('j'):
+                    print("Nenhum olho esquerdo detectado para salvar")
+                elif key == ord('k'):
+                    print("Nenhuma região dos olhos detectada para salvar")
+                elif key == ord('l'):
+                    print("Nenhum olho direito detectado para salvar")
         
         # Libera recursos
         cap.release()
