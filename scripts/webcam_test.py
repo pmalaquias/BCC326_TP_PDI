@@ -7,6 +7,7 @@ import time
 import sys
 from collections import deque
 from tensorflow.keras.models import load_model
+from datetime import datetime
 
 
 class AttentionDetector:
@@ -232,6 +233,120 @@ def draw_interface(frame, result):
                     (x1, y1 + 25), font, 0.5, color, 1)
 
 
+def draw_gaze_visualization(frame, result):
+    """Desenha visualização do direcionamento do olhar"""
+    height, width = frame.shape[:2]
+
+    # Criar fundo escuro
+    frame.fill(40)
+
+    # Título
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    title = "DIRECIONAMENTO DO OLHAR"
+    title_size = cv2.getTextSize(title, font, 0.8, 2)[0]
+    title_x = (width - title_size[0]) // 2
+    cv2.putText(frame, title, (title_x, 40), font, 0.8, (255, 255, 255), 2)
+
+    # Centro da tela (representa a câmera/tela)
+    center_x, center_y = width // 2, height // 2
+
+    # Desenhar representação da tela/monitor
+    screen_w, screen_h = 200, 120
+    screen_x1 = center_x - screen_w // 2
+    screen_y1 = center_y - screen_h // 2
+    screen_x2 = center_x + screen_w // 2
+    screen_y2 = center_y + screen_h // 2
+
+    cv2.rectangle(frame, (screen_x1, screen_y1),
+                  (screen_x2, screen_y2), (100, 100, 100), 2)
+    cv2.putText(frame, "TELA", (center_x - 25, center_y + 5),
+                font, 0.6, (255, 255, 255), 1)
+
+    if result:
+        # Cor baseada na atenção
+        gaze_color = (0, 255, 0) if result['attention'] else (0, 100, 255)
+
+        # Status no topo
+        status_text = "PRESTANDO ATENÇÃO" if result['attention'] else "DISTRAÍDO"
+        status_color = (0, 255, 0) if result['attention'] else (0, 0, 255)
+        cv2.putText(frame, status_text, (center_x - 80, 80),
+                    font, 0.7, status_color, 2)
+
+        if result['attention']:
+            # Olhando para a tela - seta apontando para o centro
+            cv2.arrowedLine(frame, (center_x, center_y - 80), (center_x, screen_y1 - 10),
+                            gaze_color, 4, tipLength=0.3)
+            cv2.putText(frame, "OLHANDO PARA A TELA", (center_x - 100, center_y - 100),
+                        font, 0.6, gaze_color, 2)
+
+            # Círculo no centro indicando foco
+            cv2.circle(frame, (center_x, center_y), 8, gaze_color, -1)
+
+        else:
+            # Distraído - setas apontando para diferentes direções
+            directions = [
+                ((center_x - 80, center_y - 60),
+                 (center_x - 120, center_y - 80), "ESQUERDA"),
+                ((center_x + 80, center_y - 60),
+                 (center_x + 120, center_y - 80), "DIREITA"),
+                ((center_x - 80, center_y + 60),
+                 (center_x - 120, center_y + 80), "BAIXO ESQ"),
+                ((center_x + 80, center_y + 60),
+                 (center_x + 120, center_y + 80), "BAIXO DIR")
+            ]
+
+            # Escolher direção baseada no tempo (animação simples)
+            direction_idx = (int(time.time() * 2) % len(directions))
+            start, end, direction_name = directions[direction_idx]
+
+            cv2.arrowedLine(frame, start, end, gaze_color, 3, tipLength=0.3)
+            cv2.putText(frame, f"OLHANDO: {direction_name}", (center_x - 120, center_y - 100),
+                        font, 0.5, gaze_color, 2)
+
+        # Status de confiabilidade
+        conf_text = f"Confiabilidade: {result['confidence']:.1%}"
+        cv2.putText(frame, conf_text, (20, height - 50),
+                    font, 0.5, (255, 255, 255), 1)
+
+    else:
+        # Sem detecção
+        cv2.putText(frame, "DETECTANDO...", (center_x - 70, center_y - 100),
+                    font, 0.6, (255, 255, 0), 2)
+
+        # Círculo pulsante
+        pulse = int(abs(np.sin(time.time() * 3) * 20))
+        cv2.circle(frame, (center_x, center_y), 10 + pulse, (255, 255, 0), 2)
+
+    # Timestamp
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    cv2.putText(frame, f"Capturado em: {timestamp}", (20, height - 20),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.4, (200, 200, 200), 1)
+
+
+def save_frames_organized(display_frame, session_start, frame_count):
+    """Salva frames da câmera organizados em pasta a cada 5 segundos"""
+    # Salvar a cada 150 frames (aproximadamente 5 segundos a 30fps)
+    if frame_count % 150 == 0:
+        try:
+            # Criar pasta da sessão
+            session_folder = f"sessao_{session_start.strftime('%Y%m%d_%H%M%S')}"
+            os.makedirs(session_folder, exist_ok=True)
+
+            # Timestamp para o arquivo
+            timestamp = datetime.now().strftime("%H%M%S")
+
+            # Salvar apenas imagem da câmera
+            camera_file = os.path.join(
+                session_folder, f"camera_{timestamp}.jpg")
+            cv2.imwrite(camera_file, display_frame)
+
+            print(
+                f"\n📷 Frame salvo em: {session_folder}/camera_{timestamp}.jpg")
+
+        except Exception as e:
+            print(f"\n⚠️ Erro ao salvar: {e}")
+
+
 def print_status(result, message):
     sys.stdout.write('\r' + ' ' * 100)
     sys.stdout.write('\r')
@@ -239,7 +354,8 @@ def print_status(result, message):
     if result:
         emoji = "🟢" if result['attention'] else "🔴"
         status = "ATENTO" if result['attention'] else "DISTRAIDO"
-        status_line = f"{emoji} {status} | Confiabilidade: {result['confidence']:.1%}"
+        direction = "TELA" if result['attention'] else "OUTRO LUGAR"
+        status_line = f"{emoji} {status} | Olhando: {direction} | Confiabilidade: {result['confidence']:.1%}"
     else:
         status_line = f"⏳ {message}"
 
@@ -291,11 +407,16 @@ def main():
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
     cap.set(cv2.CAP_PROP_FPS, 30)
 
+    session_start = datetime.now()
+    session_folder = f"sessao_{session_start.strftime('%Y%m%d_%H%M%S')}"
+
     print("\nControles:")
-    print("  • Pressione 'q' para sair")
+    print("  • Pressione Ctrl+C para sair")
+    print(f"  • Imagens da câmera salvos a cada 5s em: {session_folder}/")
     print("=" * 40)
     print("\nIniciando detecção...")
 
+    frame_count = 0
     try:
         while True:
             ret, frame = cap.read()
@@ -309,19 +430,13 @@ def main():
             result, message = detector.detect_attention(frame)
 
             draw_interface(display_frame, result)
+
+            save_frames_organized(display_frame, session_start, frame_count)
+
             print_status(result, message)
 
-            try:
-                cv2.imshow('Detector de Atenção', display_frame)
-
-                key = cv2.waitKey(1) & 0xFF
-                if key == ord('q'):
-                    print("\n\nEncerrando...")
-                    break
-            except cv2.error:
-                pass
-
-            time.sleep(0.01)
+            frame_count += 1
+            time.sleep(0.033)  # ~30fps
 
     except KeyboardInterrupt:
         print("\n\nInterrompido pelo usuário")
@@ -360,12 +475,13 @@ def main():
 
         print("="*60)
 
-        cap.release()
-        try:
-            cv2.destroyAllWindows()
-        except:
-            pass
+        frames_saved = frame_count // 150
+        if frames_saved > 0:
+            print(
+                f"\n📷 {frames_saved} imagens da câmera salvas em: {session_folder}/")
+            print("💡 Visualize as imagens para ver a detecção de atenção")
 
+        cap.release()
         print("\nDetector encerrado!")
 
 

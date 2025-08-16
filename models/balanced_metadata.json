@@ -1,0 +1,11 @@
+{
+  "model_path": "../models/mpiigaze_balanced_model.keras",
+  "img_size": [
+    32,
+    32
+  ],
+  "time_window": 4,
+  "test_accuracy": 0.8378839492797852,
+  "attention_threshold": 0.5,
+  "median_angle_used": 0.20354877693272302
+}
