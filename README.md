@@ -56,8 +56,8 @@ Input → TimeDistributed(CNN) → LSTM → Dense(Sigmoid) → Output
 ## 📥 Installation
 
 ```bash
-git clone <this-repo>
-cd <this-repo-folder-name>
+git clone https://github.com/pmalaquias/BCC326_TP_PDI
+cd BCC326_TP_PDI
 
 # Install dependencies
 pip install tensorflow opencv-python numpy pandas scikit-learn scipy
